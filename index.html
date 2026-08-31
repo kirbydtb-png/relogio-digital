@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relogio Digital Online</title>
+    <meta name="description" content="Acompanhe a hora certa com este relogio digital online rapido e seguro.">
+    <meta name="robots" content="index, follow">
+    
+    <style>
+        /* --- Estilos Globais e Reset --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #0f172a; /* Fundo escuro moderno */
+            color: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* --- O Cartao Principal (PC e Celular) --- */
+        .card {
+            background: #1e293b;
+            width: 100%;
+            max-width: 420px; /* Limite de largura para o PC */
+            padding: 40px 25px;
+            border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+            text-align: center;
+            border: 1px solid #334155;
+            transition: all 0.3s ease;
+        }
+
+        /* --- Tela 1: Captcha --- */
+        #captcha-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .aviso {
+            font-size: 1rem;
+            color: #94a3b8;
+        }
+
+        .checkbox-box {
+            background: #0f172a;
+            border: 1px solid #475569;
+            padding: 16px;
+            border-radius: 14px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .checkbox-box:hover {
+            border-color: #38bdf8;
+            background: #15203b;
+        }
+
+        .checkbox-box input {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            accent-color: #38bdf8;
+        }
+
+        .checkbox-box label {
+            font-size: 1.1rem;
+            color: #e2e8f0;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        /* --- Tela 2: Relogio --- */
+        #clock-screen {
+            display: none; /* Escondido ate marcar o checkbox */
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .status-badge {
+            background: rgba(34, 197, 94, 0.15);
+            color: #4ade80;
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
+        }
+
+        h1.time {
+            font-size: 4.5rem; /* Tamanho gigante pro PC */
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: #38bdf8;
+            font-family: monospace;
+            text-shadow: 0 0 25px rgba(56, 189, 248, 0.4);
+            margin: 0;
+            font-variant-numeric: tabular-nums; /* Evita que os numeros fiquem "dancando" */
+        }
+
+        .date {
+            font-size: 1.1rem;
+            color: #94a3b8;
+            text-transform: capitalize;
+            letter-spacing: 0.5px;
+        }
+
+        /* --- Ajustes especificos para Telas Menores (Celular) --- */
+        @media (max-width: 450px) {
+            .card {
+                padding: 30px 20px;
+                border-radius: 20px;
+            }
+            
+            h1.time {
+                font-size: 3.2rem; /* Diminui a fonte do relogio no celular pra caber certinho */
+            }
+
+            .checkbox-box label {
+                font-size: 1rem;
+            }
+            
+            .date {
+                font-size: 0.95rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        
+        <!-- Tela de Verificacao (Captcha) -->
+        <div id="captcha-screen">
+            <p class="aviso">Verificacao de seguranca</p>
+            <div class="checkbox-box" onclick="marcarCheckbox()">
+                <input type="checkbox" id="robotCheck" onclick="event.stopPropagation(); verificarRobo(this)">
+                <label for="robotCheck">Nao sou um robo</label>
+            </div>
+        </div>
+
+        <!-- Tela do Relogio Digital -->
+        <div id="clock-screen">
+            <div class="status-badge">Acesso Liberado</div>
+            <h1 class="time" id="clock">00:00:00</h1>
+            <div class="date" id="date">Carregando data...</div>
+        </div>
+
+    </div>
+
+    <script>
+        // Funcao para clicar na caixa inteira e marcar o checkbox
+        function marcarCheckbox() {
+            const check = document.getElementById('robotCheck');
+            check.checked = !check.checked;
+            verificarRobo(check);
+        }
+
+        // Funcao que verifica se marcou e troca a tela
+        function verificarRobo(checkbox) {
+            if (checkbox.checked) {
+                setTimeout(() => {
+                    document.getElementById('captcha-screen').style.display = 'none';
+                    document.getElementById('clock-screen').style.display = 'flex';
+                    iniciarRelogio();
+                }, 400); // 400ms de delay pra dar uma animacao suave
+            }
+        }
+
+        // Funcao principal que roda o relogio
+        function iniciarRelogio() {
+            function atualizar() {
+                const agora = new Date();
+                
+                // Formata as horas, minutos e segundos (Adiciona o '0' na frente se for menor que 10)
+                const horas = String(agora.getHours()).padStart(2, '0');
+                const minutos = String(agora.getMinutes()).padStart(2, '0');
+                const segundos = String(agora.getSeconds()).padStart(2, '0');
+                
+                // Atualiza o HTML
+                document.getElementById('clock').innerText = `${horas}:${minutos}:${segundos}`;
+
+                // Arrays manuais sem acento para o GitHub nao bugar a data
+                const diasDaSemana = ['Domingo', 'Segunda-feira', 'Terca-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sabado'];
+                const meses = ['Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+                
+                const diaSemana = diasDaSemana[agora.getDay()];
+                const dia = agora.getDate();
+                const mes = meses[agora.getMonth()];
+                const ano = agora.getFullYear();
+
+                document.getElementById('date').innerText = `${diaSemana}, ${dia} de ${mes} de ${ano}`;
+            }
+            
+            // Chama uma vez pra carregar na hora e depois repete a cada 1 segundo (1000ms)
+            atualizar();
+            setInterval(atualizar, 1000);
+        }
+    </script>
+</body>
+</html>
