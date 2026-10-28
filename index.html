@@ -1,415 +1,314 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0b1220">
 <title>Relógio Digital Online</title>
-<meta name="description" content="Acompanhe a hora certa com este relógio digital online, rápido, seguro e sem anúncios.">
+<meta name="description" content="Relógio digital online com cronômetro, timer e horas pelo mundo. Rápido, seguro e sem anúncios.">
 <meta name="robots" content="index, follow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg: #0b1220;
-    --card: #141d31;
-    --card-2: #0f1729;
-    --line: #263349;
-    --text: #e9edf5;
-    --text-dim: #8996ad;
-    --accent: #5eead4;
-    --accent-glow: rgba(94, 234, 212, .35);
-    --radius-lg: 22px;
-    --radius-md: 14px;
-    --radius-sm: 10px;
-    --shadow: 0 20px 45px rgba(0,0,0,.45);
+    --bg:#0b1220; --card:#141d31; --card-2:#0f1729; --line:#263349;
+    --text:#e9edf5; --text-dim:#8996ad; --accent:#5eead4; --on-accent:#06201c;
+    --glow:rgba(94,234,212,.35);
+    --r-lg:22px; --r-md:14px; --r-sm:10px; --shadow:0 20px 45px rgba(0,0,0,.45);
   }
-
-  *{ margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
-  html{ -webkit-text-size-adjust: 100%; }
-
+  html[data-theme="light"]{
+    --bg:#eef2f7; --card:#ffffff; --card-2:#f3f6fa; --line:#d5dde8;
+    --text:#0f172a; --text-dim:#5b6a82; --accent:#0d9488; --on-accent:#ffffff;
+    --glow:rgba(13,148,136,.25); --shadow:0 20px 45px rgba(15,23,42,.12);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{-webkit-text-size-adjust:100%}
   body{
-    font-family: 'Inter', system-ui, sans-serif;
-    background:
-      radial-gradient(circle at 15% 0%, rgba(94,234,212,.08), transparent 45%),
-      radial-gradient(circle at 85% 100%, rgba(94,234,212,.05), transparent 45%),
-      var(--bg);
-    color: var(--text);
-    min-height: 100dvh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: max(20px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom));
+    font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var(--text);
+    min-height:100dvh; display:flex; justify-content:center; align-items:center;
+    padding:max(20px,env(safe-area-inset-top)) 16px max(20px,env(safe-area-inset-bottom));
+    transition:background .3s,color .3s;
   }
-
   .card{
-    background: linear-gradient(180deg, var(--card), var(--card-2));
-    width: 100%;
-    max-width: 420px;
-    padding: 40px 26px 32px;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow);
-    text-align: center;
-    border: 1px solid var(--line);
+    background:linear-gradient(180deg,var(--card),var(--card-2)); width:100%; max-width:440px;
+    padding:20px 22px 28px; border-radius:var(--r-lg); box-shadow:var(--shadow);
+    border:1px solid var(--line); text-align:center;
   }
-
-  /* ---------- Tela 1: verificação ---------- */
-  #captcha-screen{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
-    width: 100%;
-  }
-
-  .aviso{ font-size: .98rem; color: var(--text-dim); }
-
-  .checkbox-box{
-    background: var(--card-2);
-    border: 1px solid var(--line);
-    padding: 16px;
-    border-radius: var(--radius-md);
-    width: 100%;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    cursor: pointer;
-    transition: .2s;
-  }
-  .checkbox-box:hover{ border-color: var(--accent); }
-
-  .checkbox-box input{
-    width: 24px; height: 24px;
-    cursor: pointer;
-    accent-color: var(--accent);
-    flex-shrink: 0;
-  }
-
-  .checkbox-box label{
-    font-size: 1.05rem;
-    color: var(--text);
-    cursor: pointer;
-    user-select: none;
-    text-align: left;
-  }
-
-  .checkbox-box.checking label::after{
-    content: '';
-  }
-
-  /* ---------- Tela 2: relógio ---------- */
-  #clock-screen{
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    gap: 14px;
-    width: 100%;
-  }
-
-  .status-badge{
-    font-family:'IBM Plex Mono', monospace;
-    background: rgba(94,234,212,.1);
-    color: var(--accent);
-    padding: 7px 16px;
-    border-radius: 30px;
-    font-size: .78rem;
-    letter-spacing: .5px;
-    border: 1px solid rgba(94,234,212,.3);
-  }
-
-  h1.time{
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: clamp(2.6rem, 12vw, 4.4rem);
-    font-weight: 700;
-    letter-spacing: 1px;
-    color: var(--text);
-    text-shadow: 0 0 30px var(--accent-glow);
-    font-variant-numeric: tabular-nums;
-    margin: 4px 0 0;
-  }
-
-  .period{
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: .9rem;
-    color: var(--accent);
-    letter-spacing: 1px;
-  }
-
-  .date{
-    font-size: 1.02rem;
-    color: var(--text-dim);
-    text-transform: capitalize;
-    letter-spacing: .3px;
-  }
-
-  .meta-row{
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: .72rem;
-    color: var(--text-dim);
-  }
-  .meta-row .dot{ width:3px; height:3px; border-radius:50%; background: var(--text-dim); }
-
-  /* barra de progresso do dia */
-  .day-progress{
-    width: 100%;
-    margin-top: 4px;
-  }
-  .day-progress-track{
-    width: 100%;
-    height: 6px;
-    background: var(--card-2);
-    border: 1px solid var(--line);
-    border-radius: 30px;
-    overflow: hidden;
-  }
-  .day-progress-fill{
-    height: 100%;
-    background: var(--accent);
-    border-radius: 30px;
-    width: 0%;
-    transition: width 1s linear;
-    box-shadow: 0 0 10px var(--accent-glow);
-  }
-  .day-progress-label{
-    display:flex;
-    justify-content: space-between;
-    font-size: .68rem;
-    color: var(--text-dim);
-    font-family: 'IBM Plex Mono', monospace;
-    margin-top: 6px;
-  }
-
-  .actions{
-    display: flex;
-    gap: 10px;
-    width: 100%;
-    margin-top: 6px;
-  }
-
-  button{
-    font-family: 'Inter', sans-serif;
-    border: none;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: .85rem;
-    border-radius: var(--radius-sm);
-    padding: 11px 8px;
-    flex: 1;
-    background: transparent;
-    color: var(--text-dim);
-    border: 1px solid var(--line);
-    transition: transform .15s ease, border-color .2s ease, color .2s ease;
-    touch-action: manipulation;
-  }
-  button:active{ transform: scale(.96); }
-  button:hover{ border-color: var(--accent); color: var(--text); }
-  button.active{ background: var(--accent); color: #08211c; border-color: var(--accent); }
-
-  @media (max-width: 380px){
-    .card{ padding: 30px 18px 26px; border-radius: 20px; }
-    .actions{ flex-wrap: wrap; }
-    .actions button{ flex: 1 1 calc(50% - 5px); }
-  }
-
-  .sr-only{
-    position: absolute; width: 1px; height: 1px;
-    overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap;
-  }
+  .topbar{display:flex; gap:8px; align-items:center; margin-bottom:22px}
+  .tabs{display:flex; flex:1; gap:4px; background:var(--card-2); border:1px solid var(--line); padding:4px; border-radius:var(--r-md)}
+  .tab{flex:1; padding:9px 4px; font-size:.78rem; background:transparent; color:var(--text-dim); border:none; border-radius:var(--r-sm)}
+  .tab[aria-selected="true"]{background:var(--accent); color:var(--on-accent)}
+  button{font-family:'Inter',sans-serif; font-weight:600; font-size:.85rem; cursor:pointer; border-radius:var(--r-sm); transition:.2s}
+  .btn{flex:1; padding:12px 8px; background:var(--card-2); color:var(--text); border:1px solid var(--line)}
+  .btn:hover:not(:disabled){border-color:var(--accent)}
+  .btn.primary{background:var(--accent); color:var(--on-accent); border-color:var(--accent)}
+  .btn:disabled{opacity:.5; cursor:default}
+  #btnTheme{width:42px; height:42px; font-size:1.1rem; background:var(--card-2); border:1px solid var(--line); color:var(--text)}
+  .panel{display:none; flex-direction:column; align-items:center; gap:14px; width:100%}
+  .panel.active{display:flex}
+  .badge{font-family:'IBM Plex Mono',monospace; background:color-mix(in srgb,var(--accent) 12%,transparent); color:var(--accent); padding:7px 16px; border-radius:30px; font-size:.78rem; border:1px solid color-mix(in srgb,var(--accent) 35%,transparent)}
+  .time{font-family:'Space Grotesk',sans-serif; font-size:clamp(2.4rem,11vw,4rem); font-weight:700; letter-spacing:1px; text-shadow:0 0 30px var(--glow); font-variant-numeric:tabular-nums}
+  .mono{font-family:'IBM Plex Mono',monospace; font-size:.9rem; color:var(--accent)}
+  .dim{font-size:1rem; color:var(--text-dim); line-height:1.6}
+  .meta{display:flex; gap:8px; align-items:center; font-family:'IBM Plex Mono',monospace; font-size:.72rem; color:var(--text-dim)}
+  .dot{width:3px; height:3px; border-radius:50%; background:var(--text-dim)}
+  .track{width:100%; height:6px; background:var(--card-2); border:1px solid var(--line); border-radius:30px; overflow:hidden}
+  .fill{height:100%; width:0; background:var(--accent); box-shadow:0 0 10px var(--glow); transition:width 1s linear}
+  .plabel{display:flex; justify-content:space-between; width:100%; font-size:.68rem; color:var(--text-dim); font-family:'IBM Plex Mono',monospace; margin-top:-8px}
+  .row{display:flex; gap:10px; width:100%}
+  .laps{list-style:none; width:100%; max-height:150px; overflow-y:auto; font-family:'IBM Plex Mono',monospace; font-size:.85rem}
+  .laps li, .zones li{display:flex; justify-content:space-between; padding:9px 4px; border-bottom:1px solid var(--line)}
+  .laps li span:first-child{color:var(--text-dim)}
+  .zones{list-style:none; width:100%}
+  .zones li{align-items:center; padding:12px 4px; text-align:left}
+  .zones small{display:block; color:var(--text-dim); font-size:.72rem; margin-top:2px}
+  .zones .t{font-family:'Space Grotesk',sans-serif; font-size:1.3rem; font-weight:700; font-variant-numeric:tabular-nums}
+  .setter{display:flex; gap:10px; align-items:center; justify-content:center}
+  .setter label{font-size:.75rem; color:var(--text-dim); display:flex; flex-direction:column; gap:4px}
+  .setter input{width:84px; padding:10px; font-size:1.3rem; text-align:center; font-family:'Space Grotesk',sans-serif; background:var(--card-2); color:var(--text); border:1px solid var(--line); border-radius:var(--r-sm)}
+  .setter b{font-size:1.6rem; margin-top:18px}
+  .done .time{color:var(--accent)}
+  button:focus-visible,input:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
 </style>
 </head>
 <body>
-
 <div class="card">
-
-  <!-- Tela de verificação -->
-  <div id="captcha-screen">
-    <p class="aviso">Verificação de segurança</p>
-    <label class="checkbox-box" id="checkboxBox">
-      <input type="checkbox" id="robotCheck">
-      <span>Não sou um robô</span>
-    </label>
+  <div class="topbar">
+    <nav class="tabs" role="tablist" aria-label="Seções">
+      <button class="tab" role="tab" data-tab="clock" aria-selected="true">Relógio</button>
+      <button class="tab" role="tab" data-tab="stopwatch" aria-selected="false">Cronômetro</button>
+      <button class="tab" role="tab" data-tab="timer" aria-selected="false">Timer</button>
+      <button class="tab" role="tab" data-tab="world" aria-selected="false">Mundo</button>
+    </nav>
+    <button id="btnTheme" aria-label="Trocar tema">🌙</button>
   </div>
 
-  <!-- Tela do relógio -->
-  <div id="clock-screen">
-    <div class="status-badge" id="greeting">Acesso liberado</div>
-
+  <section class="panel active" id="tab-clock">
+    <div class="badge" id="greeting">Olá</div>
     <h1 class="time" id="clock" aria-label="Horário atual">00:00:00</h1>
-    <div class="period" id="period"></div>
-    <div class="date" id="date">Carregando data...</div>
-
-    <div class="meta-row">
-      <span id="timezone">—</span>
-      <span class="dot"></span>
-      <span id="weekNumber">—</span>
+    <div class="mono" id="period"></div>
+    <div class="dim" id="date" style="text-transform:capitalize">Carregando data...</div>
+    <div class="meta"><span id="timezone">—</span><span class="dot"></span><span id="weekNumber">—</span></div>
+    <div class="track"><div class="fill" id="dayFill"></div></div>
+    <div class="plabel"><span>Dia iniciado</span><span id="dayPercent">0%</span></div>
+    <div class="row">
+      <button class="btn" id="btnFormat" aria-pressed="false">24h</button>
+      <button class="btn" id="btnCopy">Copiar hora</button>
+      <button class="btn" id="btnFullscreen">Tela cheia</button>
     </div>
+  </section>
 
-    <div class="day-progress">
-      <div class="day-progress-track">
-        <div class="day-progress-fill" id="dayFill"></div>
-      </div>
-      <div class="day-progress-label">
-        <span>Dia iniciado</span>
-        <span id="dayPercent">0%</span>
-      </div>
+  <section class="panel" id="tab-stopwatch">
+    <div class="time" id="swDisplay" role="timer">00:00.00</div>
+    <div class="row">
+      <button class="btn primary" id="swStart">Iniciar</button>
+      <button class="btn" id="swLap" disabled>Volta</button>
+      <button class="btn" id="swReset" disabled>Zerar</button>
     </div>
+    <ol class="laps" id="swLaps"></ol>
+  </section>
 
-    <div class="actions">
-      <button id="btnFormat" aria-pressed="false">24h</button>
-      <button id="btnCopy">Copiar hora</button>
-      <button id="btnFullscreen">Tela cheia</button>
+  <section class="panel" id="tab-timer">
+    <div class="setter" id="tmSetter">
+      <label>Minutos<input type="number" id="tmMin" min="0" max="999" value="5" inputmode="numeric"></label>
+      <b>:</b>
+      <label>Segundos<input type="number" id="tmSec" min="0" max="59" value="0" inputmode="numeric"></label>
     </div>
-  </div>
+    <div class="time" id="tmDisplay" role="timer" style="display:none">05:00</div>
+    <div class="track"><div class="fill" id="tmFill" style="transition:width .2s linear"></div></div>
+    <div class="row">
+      <button class="btn primary" id="tmStart">Iniciar</button>
+      <button class="btn" id="tmReset">Zerar</button>
+    </div>
+    <p class="dim" id="tmMsg"></p>
+  </section>
 
+  <section class="panel" id="tab-world">
+    <ul class="zones" id="zones"></ul>
+  </section>
 </div>
 
 <script>
 (() => {
   'use strict';
+  const $ = id => document.getElementById(id);
+  const pad = (n, l = 2) => String(n).padStart(l, '0');
 
-  /* ============================================================
-     TELA 1 — VERIFICAÇÃO
-     Correção de bug: o box inteiro agora é um <label>, então
-     clicar em qualquer parte (texto, padding ou checkbox) alterna
-     o checkbox exatamente uma vez — sem duplo toggle nem
-     necessidade de sincronizar manualmente o estado via JS.
-  ============================================================ */
-  const checkbox = document.getElementById('robotCheck');
-  const captchaScreen = document.getElementById('captcha-screen');
-  const clockScreen = document.getElementById('clock-screen');
-
-  checkbox.addEventListener('change', () => {
-    if (!checkbox.checked) return;
-    checkbox.disabled = true; // evita re-clique durante a transição
-    setTimeout(() => {
-      captchaScreen.style.display = 'none';
-      clockScreen.style.display = 'flex';
-      Clock.init();
-    }, 350);
+  /* ---------- Tema ---------- */
+  const root = document.documentElement, btnTheme = $('btnTheme');
+  function setTheme(t) {
+    root.dataset.theme = t;
+    btnTheme.textContent = t === 'dark' ? '🌙' : '☀️';
+    document.querySelector('meta[name="theme-color"]').content = t === 'dark' ? '#0b1220' : '#eef2f7';
+  }
+  let saved = null;
+  try { saved = localStorage.getItem('tema'); } catch {}
+  setTheme(saved || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
+  btnTheme.addEventListener('click', () => {
+    const t = root.dataset.theme === 'dark' ? 'light' : 'dark';
+    setTheme(t);
+    try { localStorage.setItem('tema', t); } catch {}
   });
 
-  /* ============================================================
-     TELA 2 — RELÓGIO
-  ============================================================ */
-  const Clock = (() => {
-    const el = {
-      clock: document.getElementById('clock'),
-      period: document.getElementById('period'),
-      date: document.getElementById('date'),
-      greeting: document.getElementById('greeting'),
-      timezone: document.getElementById('timezone'),
-      weekNumber: document.getElementById('weekNumber'),
-      dayFill: document.getElementById('dayFill'),
-      dayPercent: document.getElementById('dayPercent'),
-      btnFormat: document.getElementById('btnFormat'),
-      btnCopy: document.getElementById('btnCopy'),
-      btnFullscreen: document.getElementById('btnFullscreen'),
-    };
+  /* ---------- Abas ---------- */
+  const tabs = [...document.querySelectorAll('.tab')];
+  tabs.forEach(tab => tab.addEventListener('click', () => {
+    tabs.forEach(x => x.setAttribute('aria-selected', x === tab));
+    document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + tab.dataset.tab));
+  }));
 
-    const DIAS = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
-    const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+  /* ---------- Relógio ---------- */
+  const DIAS = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+  const MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  let f24 = true;
 
-    let format24h = true;
-    let intervalId = null;
+  function weekNumber(d) {
+    const x = new Date(d.getTime()); x.setHours(0,0,0,0);
+    x.setDate(x.getDate() + 3 - (x.getDay() + 6) % 7);
+    const w1 = new Date(x.getFullYear(), 0, 4);
+    return 1 + Math.round(((x - w1) / 86400000 - 3 + (w1.getDay() + 6) % 7) / 7);
+  }
+  function updateClock() {
+    const n = new Date(), h = n.getHours();
+    const hh = f24 ? h : (h % 12 || 12);
+    $('clock').textContent = `${pad(hh)}:${pad(n.getMinutes())}:${pad(n.getSeconds())}`;
+    $('period').textContent = f24 ? '' : (h >= 12 ? 'PM' : 'AM');
+    $('date').textContent = `${DIAS[n.getDay()]}, ${n.getDate()} de ${MESES[n.getMonth()]} de ${n.getFullYear()}`;
+    $('greeting').textContent = h < 6 ? 'Boa madrugada' : h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
+    $('weekNumber').textContent = `Semana ${weekNumber(n)}`;
+    const pct = (h * 3600 + n.getMinutes() * 60 + n.getSeconds()) / 864;
+    $('dayFill').style.width = pct.toFixed(2) + '%';
+    $('dayPercent').textContent = pct.toFixed(0) + '%';
+  }
+  $('timezone').textContent = Intl.DateTimeFormat().resolvedOptions().timeZone || '—';
+  $('btnFormat').addEventListener('click', e => {
+    f24 = !f24; e.target.textContent = f24 ? '24h' : '12h';
+    e.target.setAttribute('aria-pressed', !f24); updateClock();
+  });
+  function flash(btn, msg) {
+    const o = btn.textContent; btn.textContent = msg; btn.disabled = true;
+    setTimeout(() => { btn.textContent = o; btn.disabled = false; }, 1200);
+  }
+  $('btnCopy').addEventListener('click', async e => {
+    const txt = $('clock').textContent + ($('period').textContent ? ' ' + $('period').textContent : '');
+    try { await navigator.clipboard.writeText(txt); flash(e.target, 'Copiado!'); }
+    catch { flash(e.target, 'Erro ao copiar'); }
+  });
+  $('btnFullscreen').addEventListener('click', () => {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen?.().catch(() => {});
+    else document.exitFullscreen?.();
+  });
+  document.addEventListener('fullscreenchange', () => {
+    $('btnFullscreen').textContent = document.fullscreenElement ? 'Sair' : 'Tela cheia';
+  });
 
-    function getWeekNumber(d) {
-      const date = new Date(d.getTime());
-      date.setHours(0, 0, 0, 0);
-      date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
-      const week1 = new Date(date.getFullYear(), 0, 4);
-      return 1 + Math.round(((date - week1) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+  /* ---------- Cronômetro ---------- */
+  let swRun = false, swStart = 0, swBase = 0, swId = null, swLastLap = 0, swN = 0;
+  const swNow = () => swBase + (swRun ? performance.now() - swStart : 0);
+  const fmtSw = ms => {
+    const t = Math.floor(ms / 10);
+    return `${pad(Math.floor(t / 6000))}:${pad(Math.floor(t / 100) % 60)}.${pad(t % 100)}`;
+  };
+  const swDraw = () => { $('swDisplay').textContent = fmtSw(swNow()); };
+  $('swStart').addEventListener('click', () => {
+    if (!swRun) {
+      swRun = true; swStart = performance.now(); swId = setInterval(swDraw, 33);
+      $('swStart').textContent = 'Pausar'; $('swLap').disabled = false; $('swReset').disabled = false;
+    } else {
+      swBase = swNow(); swRun = false; clearInterval(swId); swDraw();
+      $('swStart').textContent = 'Continuar'; $('swLap').disabled = true;
     }
+  });
+  $('swLap').addEventListener('click', () => {
+    const t = swNow(); swN++;
+    const li = document.createElement('li');
+    li.innerHTML = `<span>Volta ${swN}</span><span>${fmtSw(t - swLastLap)}</span><span>${fmtSw(t)}</span>`;
+    $('swLaps').prepend(li); swLastLap = t;
+  });
+  $('swReset').addEventListener('click', () => {
+    swRun = false; clearInterval(swId); swBase = 0; swLastLap = 0; swN = 0;
+    $('swLaps').innerHTML = ''; swDraw();
+    $('swStart').textContent = 'Iniciar'; $('swLap').disabled = true; $('swReset').disabled = true;
+  });
 
-    function greetingFor(hour) {
-      if (hour < 6) return 'Boa madrugada';
-      if (hour < 12) return 'Bom dia';
-      if (hour < 18) return 'Boa tarde';
-      return 'Boa noite';
-    }
-
-    function update() {
-      const now = new Date();
-      const h24 = now.getHours();
-      const minutos = String(now.getMinutes()).padStart(2, '0');
-      const segundos = String(now.getSeconds()).padStart(2, '0');
-
-      if (format24h) {
-        el.clock.textContent = `${String(h24).padStart(2, '0')}:${minutos}:${segundos}`;
-        el.period.textContent = '';
-      } else {
-        const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
-        el.clock.textContent = `${String(h12).padStart(2, '0')}:${minutos}:${segundos}`;
-        el.period.textContent = h24 >= 12 ? 'PM' : 'AM';
-      }
-
-      el.date.textContent = `${DIAS[now.getDay()]}, ${now.getDate()} de ${MESES[now.getMonth()]} de ${now.getFullYear()}`;
-      el.greeting.textContent = greetingFor(h24);
-      el.weekNumber.textContent = `Semana ${getWeekNumber(now)}`;
-
-      const secondsToday = h24 * 3600 + now.getMinutes() * 60 + now.getSeconds();
-      const pct = (secondsToday / 86400) * 100;
-      el.dayFill.style.width = `${pct.toFixed(2)}%`;
-      el.dayPercent.textContent = `${pct.toFixed(0)}%`;
-    }
-
-    function toggleFormat() {
-      format24h = !format24h;
-      el.btnFormat.textContent = format24h ? '24h' : '12h';
-      el.btnFormat.classList.toggle('active', !format24h);
-      el.btnFormat.setAttribute('aria-pressed', String(!format24h));
-      update();
-    }
-
-    async function copyTime() {
-      const text = el.clock.textContent + (el.period.textContent ? ` ${el.period.textContent}` : '');
-      try {
-        await navigator.clipboard.writeText(text);
-        flashButton(el.btnCopy, 'Copiado!');
-      } catch {
-        flashButton(el.btnCopy, 'Erro ao copiar');
-      }
-    }
-
-    function flashButton(btn, msg) {
-      const original = btn.textContent;
-      btn.textContent = msg;
-      btn.disabled = true;
-      setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 1200);
-    }
-
-    function toggleFullscreen() {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen?.().catch(() => {});
-        el.btnFullscreen.textContent = 'Sair';
-      } else {
-        document.exitFullscreen?.();
-        el.btnFullscreen.textContent = 'Tela cheia';
-      }
-    }
-
-    function bindEvents() {
-      el.btnFormat.addEventListener('click', toggleFormat);
-      el.btnCopy.addEventListener('click', copyTime);
-      el.btnFullscreen.addEventListener('click', toggleFullscreen);
-      document.addEventListener('fullscreenchange', () => {
-        el.btnFullscreen.textContent = document.fullscreenElement ? 'Sair' : 'Tela cheia';
+  /* ---------- Timer ---------- */
+  let tmRun = false, tmEnd = 0, tmLeft = 0, tmTotal = 0, tmId = null;
+  const tmPanel = $('tab-timer');
+  const fmtTm = ms => { const s = Math.ceil(ms / 1000); return `${pad(Math.floor(s / 60))}:${pad(s % 60)}`; };
+  function beep() {
+    try {
+      const ac = new (window.AudioContext || window.webkitAudioContext)();
+      [0, 0.35, 0.7].forEach(d => {
+        const o = ac.createOscillator(), g = ac.createGain();
+        o.frequency.value = 880; g.gain.value = 0.2;
+        o.connect(g); g.connect(ac.destination);
+        o.start(ac.currentTime + d); o.stop(ac.currentTime + d + 0.2);
       });
-      el.timezone.textContent = Intl.DateTimeFormat().resolvedOptions().timeZone || '—';
+    } catch {}
+    navigator.vibrate?.([300, 150, 300]);
+  }
+  function tmShow(running) {
+    $('tmSetter').style.display = running ? 'none' : 'flex';
+    $('tmDisplay').style.display = running ? 'block' : 'none';
+  }
+  function tmTick() {
+    tmLeft = tmEnd - Date.now();
+    if (tmLeft <= 0) {
+      clearInterval(tmId); tmRun = false; tmLeft = 0;
+      $('tmDisplay').textContent = '00:00'; $('tmFill').style.width = '100%';
+      $('tmMsg').textContent = 'Tempo acabou! ⏰'; tmPanel.classList.add('done');
+      $('tmStart').textContent = 'Iniciar'; beep(); return;
     }
-
-    function init() {
-      if (intervalId) return; // evita múltiplos intervalos se init for chamado de novo
-      bindEvents();
-      update();
-      intervalId = setInterval(update, 1000);
+    $('tmDisplay').textContent = fmtTm(tmLeft);
+    $('tmFill').style.width = ((1 - tmLeft / tmTotal) * 100) + '%';
+  }
+  $('tmStart').addEventListener('click', () => {
+    if (!tmRun) {
+      if (tmLeft <= 0) {
+        const m = Math.min(999, Math.max(0, +$('tmMin').value || 0));
+        const s = Math.min(59, Math.max(0, +$('tmSec').value || 0));
+        tmTotal = tmLeft = (m * 60 + s) * 1000;
+        if (!tmTotal) { $('tmMsg').textContent = 'Escolha um tempo maior que zero.'; return; }
+      }
+      tmPanel.classList.remove('done'); $('tmMsg').textContent = '';
+      tmRun = true; tmEnd = Date.now() + tmLeft; tmShow(true);
+      tmId = setInterval(tmTick, 200); tmTick(); $('tmStart').textContent = 'Pausar';
+    } else {
+      tmRun = false; clearInterval(tmId); $('tmStart').textContent = 'Continuar';
     }
+  });
+  $('tmReset').addEventListener('click', () => {
+    tmRun = false; clearInterval(tmId); tmLeft = 0; tmTotal = 0;
+    $('tmFill').style.width = '0'; $('tmMsg').textContent = '';
+    tmPanel.classList.remove('done'); $('tmStart').textContent = 'Iniciar'; tmShow(false);
+  });
 
-    return { init };
-  })();
+  /* ---------- Mundo ---------- */
+  const ZONAS = [
+    ['São Paulo', 'America/Sao_Paulo'], ['Lisboa', 'Europe/Lisbon'], ['Londres', 'Europe/London'],
+    ['Nova York', 'America/New_York'], ['Los Angeles', 'America/Los_Angeles'],
+    ['Dubai', 'Asia/Dubai'], ['Tóquio', 'Asia/Tokyo'], ['Sydney', 'Australia/Sydney'],
+  ];
+  const zonesEl = $('zones');
+  const zf = ZONAS.map(([nome, tz]) => ({
+    nome,
+    hora: new Intl.DateTimeFormat('pt-BR', { timeZone: tz, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }),
+    dia: new Intl.DateTimeFormat('pt-BR', { timeZone: tz, weekday: 'long', day: 'numeric', month: 'short' }),
+  }));
+  zonesEl.innerHTML = zf.map(z => `<li><div>${z.nome}<small></small></div><span class="t"></span></li>`).join('');
+  const zLis = [...zonesEl.children];
+  function updateWorld() {
+    const n = new Date();
+    zf.forEach((z, i) => {
+      zLis[i].querySelector('.t').textContent = z.hora.format(n);
+      zLis[i].querySelector('small').textContent = z.dia.format(n);
+    });
+  }
+
+  /* ---------- Loop principal ---------- */
+  function tick() { updateClock(); updateWorld(); }
+  tick(); setInterval(tick, 1000);
 })();
 </script>
 </body>
